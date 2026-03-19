@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GymBeam – Produkty a recenzie</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #F26722;
+  --orange-dark: #d95a1a;
+  --orange-light: #fff3ec;
+  --orange-border: #ffd4a8;
+  --black: #111;
+  --gray-50: #fafafa;
+  --gray-100: #f2f2f2;
+  --gray-200: #e5e5e5;
+  --gray-300: #ccc;
+  --gray-400: #aaa;
+  --gray-500: #777;
+  --gray-600: #555;
+  --green: #1e9050;
+  --green-light: #edfaf4;
+  --red: #cc2b2b;
+  --red-light: #fff0f0;
+  --red-border: #ffc5c5;
+  --white: #fff;
+  --font: 'Nunito', sans-serif;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  font-family: var(--font);
+  background: #e8e6e2;
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+/* ── PHONE SHELL ── */
+.phone-shell {
+  width: 393px;
+  height: 852px;
+  margin: 20px auto;
+  background: var(--white);
+  border-radius: 44px;
+  box-shadow: 0 28px 80px rgba(0,0,0,.32), 0 4px 16px rgba(0,0,0,.12), inset 0 0 0 1.5px rgba(0,0,0,.1);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── STATUS BAR ── */
+.status-bar {
+  flex-shrink: 0;
+  height: 48px;
+  background: var(--white);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 24px 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--black);
+  position: relative;
+  z-index: 10;
+}
+.status-icons { display: flex; gap: 5px; align-items: center; font-size: 12px; }
+
+/* ── SCREEN CONTAINER ── */
+.screens {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+}
+.screen.active   { transform: translateX(0); }
+.screen.leaving  { transform: translateX(-30%); }
+
+/* ── TOP NAV ── */
+.top-nav {
+  flex-shrink: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--gray-100);
+  background: var(--white);
+  position: relative;
+  z-index: 5;
+}
+.nav-back {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  font-size: 22px; color: var(--black); font-family: var(--font);
+  border-radius: 50%; transition: background .15s;
+}
+.nav-back:hover { background: var(--gray-100); }
+.nav-title { font-size: 17px; font-weight: 800; color: var(--black); position: absolute; left: 50%; transform: translateX(-50%); }
+.nav-right { width: 36px; }
+
+/* ── SCROLL AREA ── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  flex-shrink: 0;
+  height: 72px;
+  background: var(--white);
+  border-top: 1px solid var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: 8px;
+}
+.bn { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; min-width: 48px; }
+.bn-icon { font-size: 22px; color: var(--gray-400); }
+.bn-icon.active { color: var(--orange); }
+.bn-logo { width: 36px; height: 36px; background: var(--black); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 12px; font-weight: 900; }
+.bn-badge { position: relative; }
+.bn-badge::after { content:'1'; position:absolute; top:-4px; right:-6px; background:var(--orange); color:#fff; border-radius:50%; width:16px; height:16px; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+
+/* ══════════════════════════════════
+   SCREEN 1 – PRODUCTS & REVIEWS
+══════════════════════════════════ */
+.seg-control {
+  display: flex;
+  background: var(--gray-100);
+  border-radius: 22px;
+  padding: 3px;
+  margin: 16px;
+}
+.seg-btn {
+  flex: 1; border: none; border-radius: 20px;
+  padding: 9px 0; font-size: 14px; font-weight: 700;
+  font-family: var(--font); cursor: pointer; transition: all .2s;
+  color: var(--gray-400); background: transparent;
+}
+.seg-btn.active { background: var(--white); color: var(--black); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+
+.points-banner {
+  margin: 0 16px 16px;
+  background: #EEF6FF;
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 13px; color: #1560b0; line-height: 1.5;
+}
+.points-banner .bi { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* Product card */
+.product-card {
+  margin: 0 16px 14px;
+  background: var(--orange-light);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.pc-header { padding: 12px 14px 0; }
+.pc-label { font-size: 12px; font-weight: 700; color: var(--orange); margin-bottom: 3px; }
+.pc-name { font-size: 15px; font-weight: 800; color: var(--black); line-height: 1.35; }
+.pc-body {
+  padding: 10px 14px 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.pc-left { flex: 1; }
+.pc-date { font-size: 12px; color: var(--gray-400); margin-bottom: 5px; }
+.pc-stars { font-size: 22px; color: var(--gray-300); letter-spacing: 1px; margin-bottom: 6px; }
+.pc-stars.filled { color: var(--orange); }
+.pc-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 8px; padding: 4px 10px;
+  font-size: 12px; font-weight: 700;
+}
+.badge-pending { background: #e8f0ff; color: #3355aa; }
+.badge-approved { background: var(--green-light); color: var(--green); }
+.badge-rejected { background: var(--red-light); color: var(--red); }
+
+.pc-thumb {
+  width: 70px; height: 70px;
+  background: rgba(255,255,255,.6);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; flex-shrink: 0;
+}
+.pc-footer {
+  border-top: 1px solid rgba(0,0,0,.06);
+  margin: 0 14px;
+  padding: 10px 0;
+}
+.btn-add-review {
+  width: 100%; border: 2px solid var(--orange);
+  border-radius: 10px; padding: 11px;
+  font-size: 13px; font-weight: 800; letter-spacing: .5px;
+  text-transform: uppercase; color: var(--orange);
+  background: transparent; cursor: pointer; font-family: var(--font);
+  transition: all .15s;
+}
+.btn-add-review:hover { background: var(--orange); color: var(--white); }
+.btn-detail-outline {
+  width: 100%; border: 1.5px solid var(--gray-300);
+  border-radius: 10px; padding: 11px;
+  font-size: 13px; font-weight: 800; letter-spacing: .5px;
+  text-transform: uppercase; color: var(--black);
+  background: transparent; cursor: pointer; font-family: var(--font);
+  transition: all .15s;
+}
+.btn-detail-outline:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ══════════════════════════════════
+   SCREEN 2 – DETAIL
+══════════════════════════════════ */
+.detail-product-img {
+  width: 100%; height: 220px;
+  background: var(--gray-100);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 80px;
+}
+.detail-body { padding: 20px 20px 32px; }
+.detail-product-name { font-size: 19px; font-weight: 800; color: var(--orange); margin-bottom: 16px; line-height: 1.3; }
+.detail-section-label { font-size: 13px; color: var(--gray-400); font-weight: 600; margin-bottom: 5px; }
+.detail-stars-row { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+.detail-stars { font-size: 20px; color: var(--orange); letter-spacing: 1px; }
+.detail-score { font-size: 14px; color: var(--gray-500); font-weight: 600; }
+.detail-divider { height: 1px; background: var(--gray-100); margin: 16px 0; }
+.detail-review-title { font-size: 16px; font-weight: 800; margin-bottom: 5px; }
+.detail-review-text { font-size: 14px; color: var(--gray-500); line-height: 1.6; margin-bottom: 6px; }
+.detail-created { font-size: 12px; color: var(--gray-400); }
+.btn-edit-full {
+  width: 100%; background: var(--black); color: var(--white);
+  border: none; border-radius: 12px; padding: 15px;
+  font-size: 15px; font-weight: 800; font-family: var(--font);
+  cursor: pointer; margin-top: 24px; transition: background .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-edit-full:hover { background: #333; }
+
+/* ══════════════════════════════════
+   SCREEN 3 – STAR PICKER
+══════════════════════════════════ */
+.star-screen-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px;
+}
+.star-screen-product {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--gray-100); border-radius: 14px;
+  padding: 12px 16px; width: 100%; margin-bottom: 40px;
+}
+.ssp-thumb { width: 52px; height: 52px; background: var(--gray-200); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.ssp-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+
+.star-q { font-size: 17px; font-weight: 700; color: var(--black); margin-bottom: 28px; text-align: center; }
+.star-big-row { display: flex; gap: 12px; margin-bottom: 16px; }
+.star-big { font-size: 48px; color: var(--gray-200); cursor: pointer; transition: color .12s, transform .1s; user-select: none; line-height: 1; }
+.star-big.on { color: var(--orange); }
+.star-label { font-size: 15px; font-weight: 800; color: var(--orange); min-height: 24px; margin-bottom: 40px; text-align: center; }
+
+.btn-continue {
+  width: 100%; background: var(--orange); color: var(--white);
+  border: none; border-radius: 12px; padding: 15px;
+  font-size: 16px; font-weight: 800; font-family: var(--font);
+  cursor: pointer; transition: background .15s, opacity .15s;
+}
+.btn-continue:disabled { opacity: .35; cursor: default; }
+.btn-continue:not(:disabled):hover { background: var(--orange-dark); }
+
+/* ══════════════════════════════════
+   SCREEN 4 – FORM
+══════════════════════════════════ */
+.form-screen-body { padding: 16px 20px 32px; }
+
+.form-product-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--gray-50); border: 1.5px solid var(--gray-200);
+  border-radius: 12px; padding: 12px; margin-bottom: 20px;
+}
+.fpc-thumb { width: 52px; height: 52px; background: var(--gray-100); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.fpc-info strong { font-size: 14px; font-weight: 800; display: block; margin-bottom: 5px; }
+.fpc-stars-row { display: flex; align-items: center; gap: 3px; }
+.fpc-s { font-size: 20px; color: var(--gray-200); }
+.fpc-s.on { color: var(--orange); }
+.fpc-edit { background: none; border: none; cursor: pointer; font-size: 15px; color: var(--gray-400); padding: 0 4px; font-family: var(--font); }
+
+.field { margin-bottom: 14px; }
+.field-label { font-size: 13px; font-weight: 700; color: var(--gray-600); margin-bottom: 7px; display: block; }
+.field-label .req { color: var(--orange); }
+.app-input, .app-textarea {
+  width: 100%; border: 1.5px solid var(--gray-200);
+  border-radius: 12px; padding: 13px 14px;
+  font-size: 14px; font-family: var(--font); color: var(--black);
+  outline: none; transition: border-color .15s; background: var(--white);
+}
+.app-input:focus, .app-textarea:focus { border-color: var(--orange); }
+.app-input::placeholder, .app-textarea::placeholder { color: #c5c5c5; }
+.app-textarea { resize: none; height: 100px; }
+
+.chips-row { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0 0; }
+.chip {
+  border: 1.5px solid var(--gray-200); border-radius: 20px;
+  padding: 5px 13px; font-size: 12px; font-weight: 700;
+  color: var(--gray-600); background: var(--white);
+  cursor: pointer; font-family: var(--font); transition: all .14s;
+}
+.chip:hover, .chip.sel { background: var(--orange-light); border-color: var(--orange); color: var(--orange); }
+
+.cb-label { display: flex; align-items: center; gap: 9px; margin-top: 9px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--gray-600); }
+.cb-label input { width: 17px; height: 17px; accent-color: var(--orange); }
+
+.recaptcha-note { font-size: 11px; color: var(--gray-400); line-height: 1.5; }
+.recaptcha-note a { color: #1560b0; }
+
+/* Sticky submit bar */
+.submit-bar {
+  flex-shrink: 0;
+  padding: 12px 16px 16px;
+  background: var(--white);
+  border-top: 1px solid var(--gray-100);
+}
+.submit-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 10px; }
+.btn-submit {
+  flex: 1; background: var(--orange); color: var(--white);
+  border: none; border-radius: 12px; padding: 15px;
+  font-size: 15px; font-weight: 800; font-family: var(--font);
+  cursor: pointer; text-transform: uppercase; letter-spacing: .5px;
+  transition: background .15s;
+}
+.btn-submit:hover { background: var(--orange-dark); }
+.points-pill {
+  background: var(--gray-100); color: var(--gray-600);
+  border-radius: 12px; padding: 0 14px;
+  font-size: 13px; font-weight: 800; display: flex; align-items: center;
+  white-space: nowrap;
+}
+.submit-info { display: flex; align-items: flex-start; gap: 8px; font-size: 11px; color: var(--gray-400); line-height: 1.5; }
+
+/* Alert */
+.alert {
+  border-radius: 12px; padding: 12px 13px;
+  font-size: 13px; margin-bottom: 16px;
+  display: flex; gap: 9px; align-items: flex-start; line-height: 1.5;
+}
+.alert-error { background: var(--red-light); border: 1.5px solid var(--red-border); color: #7a0000; }
+.alert-warn { background: #fff7ed; border: 1.5px solid var(--orange-border); color: #7a3a00; }
+
+/* ══════════════════════════════════
+   SCREEN 5 – SUCCESS
+══════════════════════════════════ */
+.success-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 28px; text-align: center;
+}
+.success-jim { font-size: 80px; margin-bottom: 20px; animation: bob .9s ease-in-out infinite alternate; display: block; }
+@keyframes bob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-14px) rotate(4deg); } }
+.success-title { font-size: 22px; font-weight: 900; margin-bottom: 10px; color: var(--black); }
+.success-sub { font-size: 14px; color: var(--gray-500); line-height: 1.65; margin-bottom: 36px; }
+.btn-back-list {
+  width: 100%; background: var(--black); color: var(--white);
+  border: none; border-radius: 12px; padding: 15px;
+  font-size: 16px; font-weight: 800; font-family: var(--font); cursor: pointer;
+}
+
+/* ══════════════════════════════════
+   SCREEN 6 – REJECTED
+══════════════════════════════════ */
+
+/* Divider label */
+.section-divider {
+  padding: 14px 16px 6px;
+  font-size: 11px; font-weight: 800; color: var(--gray-400);
+  letter-spacing: .8px; text-transform: uppercase;
+}
+
+/* Empty state for Recenzie tab */
+.empty-state { text-align: center; padding: 48px 28px; }
+.empty-state .es-icon { font-size: 52px; margin-bottom: 14px; display: block; }
+.empty-state p { font-size: 14px; color: var(--gray-500); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="phone-shell" id="phone">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span id="status-time">08:03</span>
+    <div class="status-icons"><span>▪▪▪</span><span>📶</span><span>🔋</span></div>
+  </div>
+
+  <!-- SCREENS -->
+  <div class="screens" id="screens">
+
+    <!-- ══ S1: PRODUCTS LIST ══ -->
+    <div class="screen active" id="s-list">
+      <div class="top-nav">
+        <button class="nav-back" style="opacity:0;pointer-events:none;">‹</button>
+        <span class="nav-title">Produkty a recenzie</span>
+        <div class="nav-right"></div>
+      </div>
+      <div class="scroll-area" id="list-scroll">
+        <div class="seg-control">
+          <button class="seg-btn active" id="seg-products" onclick="switchSeg('products')">Produkty</button>
+          <button class="seg-btn" id="seg-reviews" onclick="switchSeg('reviews')">Recenzie</button>
+        </div>
+
+        <div class="points-banner" id="points-banner">
+          <span class="bi">ℹ️</span>
+          <span>Za každú recenziu produktu z overeného nákupu získate <strong>10 bodov</strong> do vernostného programu.</span>
+        </div>
+
+        <div id="products-tab"></div>
+        <div id="reviews-tab" style="display:none;"></div>
+      </div>
+      <div class="bottom-nav">
+        <div class="bn"><div class="bn-logo">GB</div></div>
+        <div class="bn"><span class="bn-icon">🔍</span></div>
+        <div class="bn bn-badge"><span class="bn-icon">🛒</span></div>
+        <div class="bn"><span class="bn-icon">♡</span></div>
+        <div class="bn"><span class="bn-icon active">👤</span></div>
+      </div>
+    </div>
+
+    <!-- ══ S2: DETAIL ══ -->
+    <div class="screen" id="s-detail">
+      <div class="top-nav">
+        <button class="nav-back" onclick="goBack('s-detail','s-list')">‹</button>
+        <span class="nav-title">Podrobnosti</span>
+        <div class="nav-right"></div>
+      </div>
+      <div class="scroll-area">
+        <div class="detail-product-img" id="d-img">🥛</div>
+        <div class="detail-body">
+          <div class="detail-product-name" id="d-name">–</div>
+          <div class="detail-section-label">Priemerné hodnotenie zákazníkov</div>
+          <div class="detail-stars-row">
+            <span class="detail-stars" id="d-avg-stars">★★★★★</span>
+            <span class="detail-score" id="d-avg-score">5.0 (5)</span>
+          </div>
+          <div class="detail-section-label">Vaše hodnotenie</div>
+          <div class="detail-stars-row">
+            <span class="detail-stars" id="d-my-stars">★★★★★</span>
+            <span class="detail-score" id="d-my-score">5.0</span>
+          </div>
+          <div class="detail-divider"></div>
+          <div class="detail-review-title" id="d-title">–</div>
+          <div class="detail-review-text" id="d-text">–</div>
+          <div class="detail-created" id="d-date">–</div>
+          <button class="btn-edit-full" onclick="startEditFromDetail()">✏️ Upraviť recenziu</button>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="bn"><div class="bn-logo">GB</div></div>
+        <div class="bn"><span class="bn-icon">🔍</span></div>
+        <div class="bn bn-badge"><span class="bn-icon">🛒</span></div>
+        <div class="bn"><span class="bn-icon">♡</span></div>
+        <div class="bn"><span class="bn-icon active">👤</span></div>
+      </div>
+    </div>
+
+    <!-- ══ S3: STAR PICKER ══ -->
+    <div class="screen" id="s-stars">
+      <div class="top-nav">
+        <button class="nav-back" onclick="goBack('s-stars','s-list')">✕</button>
+        <span class="nav-title">Pridať recenziu</span>
+        <div class="nav-right"></div>
+      </div>
+      <div class="star-screen-body">
+        <div class="star-screen-product">
+          <div class="ssp-thumb" id="ssp-thumb">🥛</div>
+          <div class="ssp-name" id="ssp-name">Produkt</div>
+        </div>
+        <p class="star-q">Ako hodnotíte produkt?</p>
+        <div class="star-big-row" id="star-big-row">
+          <span class="star-big" data-v="1" onclick="pickStar(1)">★</span>
+          <span class="star-big" data-v="2" onclick="pickStar(2)">★</span>
+          <span class="star-big" data-v="3" onclick="pickStar(3)">★</span>
+          <span class="star-big" data-v="4" onclick="pickStar(4)">★</span>
+          <span class="star-big" data-v="5" onclick="pickStar(5)">★</span>
+        </div>
+        <div class="star-label" id="star-label">— vyberte hodnotenie —</div>
+        <button class="btn-continue" id="btn-continue" disabled onclick="goToForm()">Pokračovať →</button>
+      </div>
+      <div class="bottom-nav">
+        <div class="bn"><div class="bn-logo">GB</div></div>
+        <div class="bn"><span class="bn-icon">🔍</span></div>
+        <div class="bn bn-badge"><span class="bn-icon">🛒</span></div>
+        <div class="bn"><span class="bn-icon">♡</span></div>
+        <div class="bn"><span class="bn-icon active">👤</span></div>
+      </div>
+    </div>
+
+    <!-- ══ S4: FORM ══ -->
+    <div class="screen" id="s-form">
+      <div class="top-nav">
+        <button class="nav-back" onclick="goBack('s-form','s-stars')">‹</button>
+        <span class="nav-title">Pridať recenziu</span>
+        <button class="nav-back" onclick="closeReviewFlow()" title="Zavrieť" style="font-size:18px;">✕</button>
+      </div>
+      <div class="scroll-area">
+        <div class="form-screen-body">
+
+          <div class="form-product-card">
+            <div class="fpc-thumb" id="fpc-thumb">🥛</div>
+            <div class="fpc-info">
+              <strong id="fpc-name">Produkt</strong>
+              <div class="fpc-stars-row" id="fpc-stars">
+                <span class="fpc-s" data-v="1">★</span>
+                <span class="fpc-s" data-v="2">★</span>
+                <span class="fpc-s" data-v="3">★</span>
+                <span class="fpc-s" data-v="4">★</span>
+                <span class="fpc-s" data-v="5">★</span>
+                <button class="fpc-edit" onclick="goBack('s-form','s-stars')" title="Upraviť">✏️</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alert for edit case -->
+          <div class="alert alert-warn" id="edit-alert" style="display:none;">
+            <span>ℹ️</span>
+            <div><strong>Editujete existujúcu recenziu.</strong> Odoslaním nahradíte pôvodnú.</div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Zhrnutie recenzie</label>
+            <input class="app-input" id="f-summary" placeholder="Zhrnutie" oninput="saveFields()">
+            <div class="chips-row" id="f-chips"></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Vaša recenzia:</label>
+            <textarea class="app-textarea" id="f-review" placeholder="Čo vám na produkte vyhovovalo? Ako ho používate?" oninput="saveFields()"></textarea>
+          </div>
+          <div class="field">
+            <label class="field-label">Prezývka <span class="req">*</span></label>
+            <input class="app-input" id="f-author" value="Yevhenii M.">
+            <label class="cb-label"><input type="checkbox" id="f-initials" onchange="toggleInitials()"> Zobraziť len iniciály mena</label>
+          </div>
+          <div style="height:12px;"></div>
+          <p class="recaptcha-note">Táto stránka je chránená reCAPTCHA a platia na ňu <a href="#">zásady ochrany osobných údajov</a> a <a href="#">podmienky používania</a> spoločnosti Google.</p>
+        </div>
+      </div>
+      <div class="submit-bar">
+        <div class="submit-row">
+          <button class="btn-submit" onclick="submitReview()">Odoslať recenziu</button>
+          <div class="points-pill">+10 bodov</div>
+        </div>
+        <div class="submit-info">
+          <span>ℹ️</span>
+          <span>Za každú recenziu produktu z overeného nákupu získate <strong>10 bodov</strong> do vernostného programu.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S5: SUCCESS ══ -->
+    <div class="screen" id="s-success">
+      <div class="top-nav">
+        <div class="nav-right"></div>
+        <span class="nav-title"></span>
+        <button class="nav-back" onclick="closeReviewFlow()">✕</button>
+      </div>
+      <div class="success-body">
+        <span class="success-jim">🫙</span>
+        <div class="success-title">Ďakujeme! Recenzia je na ceste.</div>
+        <div class="success-sub">Zverejníme ju po kontrole, aby bola užitočná pre ostatných zákazníkov.</div>
+        <button class="btn-back-list" onclick="closeReviewFlow()">← Späť na zoznam produktov</button>
+      </div>
+      <div class="bottom-nav">
+        <div class="bn"><div class="bn-logo">GB</div></div>
+        <div class="bn"><span class="bn-icon">🔍</span></div>
+        <div class="bn bn-badge"><span class="bn-icon">🛒</span></div>
+        <div class="bn"><span class="bn-icon">♡</span></div>
+        <div class="bn"><span class="bn-icon active">👤</span></div>
+      </div>
+    </div>
+
+    <!-- ══ S6: REJECTED ══ -->
+    <div class="screen" id="s-rejected">
+      <div class="top-nav">
+        <button class="nav-back" onclick="goBack('s-rejected','s-list')">‹</button>
+        <span class="nav-title">Pridať recenziu</span>
+        <button class="nav-back" onclick="closeReviewFlow()" style="font-size:18px;">✕</button>
+      </div>
+      <div class="scroll-area">
+        <div class="form-screen-body">
+          <div class="alert alert-error">
+            <span>⚠️</span>
+            <span>Vyzerá to, že recenzia obsahuje cenu alebo kontakt. Skúste to, prosím, bez toho, nech ju môžeme zverejniť.</span>
+          </div>
+          <div class="form-product-card">
+            <div class="fpc-thumb">👕</div>
+            <div class="fpc-info">
+              <strong>Pánske boxerky Soft 2Pack Black</strong>
+              <div class="fpc-stars-row">
+                <span class="fpc-s on">★</span><span class="fpc-s on">★</span><span class="fpc-s on">★</span><span class="fpc-s on">★</span><span class="fpc-s">★</span>
+              </div>
+            </div>
+          </div>
+          <div class="field"><label class="field-label">Zhrnutie recenzie</label><input class="app-input" value="Odporúčam, dobrá cena 15€"></div>
+          <div class="field"><label class="field-label">Vaša recenzia:</label><textarea class="app-textarea">Pohodlné boxerky. Kontaktujte ma na email pre ďalšie info...</textarea></div>
+          <div class="field"><label class="field-label">Prezývka</label><input class="app-input" value="Yevhenii M."></div>
+          <p class="recaptcha-note">Táto stránka je chránená reCAPTCHA.</p>
+        </div>
+      </div>
+      <div class="submit-bar">
+        <div class="submit-row">
+          <button class="btn-submit">Odoslať recenziu</button>
+          <div class="points-pill">+10 bodov</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+</div><!-- /phone -->
+
+<script>
+// ═══════════════════════════════════
+// DATA
+// ═══════════════════════════════════
+const starLabels = {1:'Neodporúčam',2:'Skôr nie',3:'Priemer',4:'Spokojnosť',5:'Top'};
+const chipSets = {
+  5:['Výborný produkt','Kúpim znova','Dobrá kvalita'],
+  4:['Odporúčam','Super, len…','Splnilo očakávania'],
+  3:['OK, ale…','Priemer','Záleží pre koho'],
+  2:['Nesadlo mi','Problém s…','Čakal/a som viac'],
+  1:['Nesadlo mi','Problém s…','Čakal/a som viac']
+};
+
+const products = [
+  { id:1, emoji:'🫙', name:'MOXY daily+ 330 ml – GymBeam', status:'approved', rating:5, date:'18. 3. 2026', review:{title:'Výborný energetický nápoj', text:'Skvelá chuť, dobre sa pije pred tréningom. Určite kúpim znova.'} },
+  { id:2, emoji:'🩱', name:'Dámske šortky Biker grey – GymBeam', status:'approved', rating:5, date:'16. 3. 2026', review:{title:'Super kvalita', text:'Pohodlné šortky, zostávajú na mieste počas tréningu.'} },
+  { id:3, emoji:'🥜', name:'Orechové maslo 2GO – arašidové maslo – GymBeam', status:'pending', rating:0, date:null, review:null },
+  { id:4, emoji:'🥤', name:'Šejker Steel 750 ml – GymBeam', status:'pending', rating:0, date:null, review:null },
+  { id:5, emoji:'🥛', name:'Just Whey Grass-Fed Proteín – GymBeam', status:'pending', rating:0, date:null, review:null },
+  { id:6, emoji:'🍫', name:'Protein Break Bar 3pack – GymBeam', status:'pending', rating:0, date:null, review:null },
+];
+
+let curProduct = null;
+let curRating = 0;
+let savedSum = '', savedRev = '';
+let isEdit = false;
+let screenHistory = ['s-list'];
+
+// ═══════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  document.getElementById('status-time').textContent =
+    now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function navigateTo(toId) {
+  const current = screenHistory[screenHistory.length - 1];
+  if(current === toId) return;
+  const fromEl = document.getElementById(current);
+  const toEl   = document.getElementById(toId);
+  fromEl.classList.add('leaving');
+  toEl.classList.add('active');
+  screenHistory.push(toId);
+  setTimeout(() => fromEl.classList.remove('active', 'leaving'), 320);
+}
+
+function goBack(fromId, toId) {
+  const fromEl = document.getElementById(fromId);
+  const toEl   = document.getElementById(toId);
+  fromEl.style.transition = 'transform .28s cubic-bezier(.4,0,.2,1)';
+  fromEl.style.transform  = 'translateX(100%)';
+  toEl.classList.add('active');
+  toEl.classList.remove('leaving');
+  toEl.style.transform = 'translateX(0)';
+  screenHistory = screenHistory.filter(s => s !== fromId);
+  setTimeout(() => {
+    fromEl.classList.remove('active');
+    fromEl.style.transform = '';
+    fromEl.style.transition = '';
+  }, 300);
+}
+
+function closeReviewFlow() {
+  // Return all review screens to default, go back to list
+  ['s-stars','s-form','s-success','s-rejected','s-detail'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','leaving');
+    el.style.transform = '';
+    el.style.transition = '';
+  });
+  const listEl = document.getElementById('s-list');
+  listEl.classList.add('active');
+  screenHistory = ['s-list'];
+  renderList();
+}
+
+// ═══════════════════════════════════
+// SEGMENT SWITCH
+// ═══════════════════════════════════
+function switchSeg(tab) {
+  document.getElementById('seg-products').classList.toggle('active', tab==='products');
+  document.getElementById('seg-reviews').classList.toggle('active', tab==='reviews');
+  document.getElementById('products-tab').style.display = tab==='products' ? '' : 'none';
+  document.getElementById('reviews-tab').style.display  = tab==='reviews'  ? '' : 'none';
+  document.getElementById('points-banner').style.display = tab==='products' ? '' : 'none';
+}
+
+// ═══════════════════════════════════
+// RENDER LIST
+// ═══════════════════════════════════
+function renderList() {
+  const pendingProds = products.filter(p => p.status === 'pending');
+  const approvedProds = products.filter(p => p.status === 'approved');
+
+  // Products tab
+  let html = '';
+  if(approvedProds.length) {
+    html += `<div class="section-divider">Schválené recenzie</div>`;
+    approvedProds.forEach(p => { html += buildCard(p); });
+  }
+  if(pendingProds.length) {
+    html += `<div class="section-divider">Čakajú na recenziu</div>`;
+    pendingProds.forEach(p => { html += buildCard(p); });
+  }
+  document.getElementById('products-tab').innerHTML = html + '<div style="height:16px;"></div>';
+
+  // Reviews tab
+  if(approvedProds.length) {
+    let rHtml = '';
+    approvedProds.forEach(p => { rHtml += buildCard(p); });
+    document.getElementById('reviews-tab').innerHTML = rHtml + '<div style="height:16px;"></div>';
+  } else {
+    document.getElementById('reviews-tab').innerHTML = `
+      <div class="empty-state">
+        <span class="es-icon">⭐</span>
+        <p>Zatiaľ nemáte žiadne schválené recenzie.</p>
+      </div>`;
+  }
+}
+
+function buildCard(p) {
+  const starsHtml = p.rating > 0
+    ? `<span style="color:var(--orange);font-size:22px;">${'★'.repeat(p.rating)}</span><span style="color:var(--gray-300);font-size:22px;">${'★'.repeat(5-p.rating)}</span>`
+    : `<span style="color:var(--gray-300);font-size:22px;">★★★★★</span>`;
+
+  let badgeHtml = '';
+  if(p.status==='pending')   badgeHtml = `<span class="pc-status-badge badge-pending">Čaká sa na vašu recenziu</span>`;
+  if(p.status==='approved')  badgeHtml = `<span class="pc-status-badge badge-approved">✓ Schválené</span>`;
+  if(p.status==='rejected')  badgeHtml = `<span class="pc-status-badge badge-rejected">✕ Zamietnuté</span>`;
+
+  const dateHtml = p.date ? `<div class="pc-date">${p.date}</div>` : '';
+
+  let actionBtn = '';
+  if(p.status==='pending') {
+    actionBtn = `<button class="btn-add-review" onclick="openAddReview(${p.id})">Pridať recenziu</button>`;
+  } else if(p.status==='approved') {
+    actionBtn = `<button class="btn-detail-outline" onclick="openDetail(${p.id})">Podrobnosti</button>`;
+  } else {
+    actionBtn = `<button class="btn-add-review" onclick="openAddReview(${p.id})">Upraviť recenziu</button>`;
+  }
+
+  return `
+    <div class="product-card">
+      <div class="pc-header">
+        <div class="pc-label">Názov produktu:</div>
+        <div class="pc-name">${p.name}</div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-left">
+          ${dateHtml}
+          <div class="pc-stars">${starsHtml}</div>
+          ${badgeHtml}
+        </div>
+        <div class="pc-thumb">${p.emoji}</div>
+      </div>
+      <div class="pc-footer">${actionBtn}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════
+// OPEN ADD REVIEW
+// ═══════════════════════════════════
+function openAddReview(pid) {
+  curProduct = products.find(p => p.id === pid);
+  curRating = 0; savedSum = ''; savedRev = ''; isEdit = false;
+  renderBigStars(0);
+  document.getElementById('star-label').textContent = '— vyberte hodnotenie —';
+  document.getElementById('btn-continue').disabled = true;
+  document.getElementById('ssp-thumb').textContent = curProduct.emoji;
+  document.getElementById('ssp-name').textContent  = curProduct.name;
+  navigateTo('s-stars');
+}
+
+// ═══════════════════════════════════
+// OPEN DETAIL
+// ═══════════════════════════════════
+function openDetail(pid) {
+  curProduct = products.find(p => p.id === pid);
+  document.getElementById('d-img').textContent   = curProduct.emoji;
+  document.getElementById('d-name').textContent  = curProduct.name;
+  const rs = curProduct.rating;
+  document.getElementById('d-avg-stars').textContent = '★'.repeat(rs) + '☆'.repeat(5-rs);
+  document.getElementById('d-avg-score').textContent = `${rs}.0 (5)`;
+  document.getElementById('d-my-stars').textContent  = '★'.repeat(rs) + '☆'.repeat(5-rs);
+  document.getElementById('d-my-score').textContent  = `${rs}.0`;
+  document.getElementById('d-title').textContent = curProduct.review?.title || '';
+  document.getElementById('d-text').textContent  = curProduct.review?.text  || '';
+  document.getElementById('d-date').textContent  = curProduct.date ? `Vytvorené ${curProduct.date.replace(/\. /g,'.')}` : '';
+  navigateTo('s-detail');
+}
+
+function startEditFromDetail() {
+  isEdit = true;
+  curRating = curProduct.rating;
+  savedSum = curProduct.review?.title || '';
+  savedRev = curProduct.review?.text  || '';
+  renderBigStars(curRating);
+  document.getElementById('star-label').textContent = starLabels[curRating] || '';
+  document.getElementById('btn-continue').disabled = false;
+  document.getElementById('ssp-thumb').textContent = curProduct.emoji;
+  document.getElementById('ssp-name').textContent  = curProduct.name;
+  navigateTo('s-stars');
+}
+
+// ═══════════════════════════════════
+// STAR PICKER
+// ═══════════════════════════════════
+function renderBigStars(val) {
+  document.querySelectorAll('#star-big-row .star-big').forEach(s => {
+    s.classList.toggle('on', parseInt(s.dataset.v) <= val);
+  });
+}
+function pickStar(val) {
+  curRating = val;
+  renderBigStars(val);
+  document.getElementById('star-label').textContent = starLabels[val];
+  document.getElementById('btn-continue').disabled = false;
+}
+// Hover
+document.querySelectorAll('#star-big-row .star-big').forEach(s => {
+  s.addEventListener('mouseenter', () => {
+    const v = parseInt(s.dataset.v);
+    document.querySelectorAll('#star-big-row .star-big').forEach(ss => {
+      if(!ss.classList.contains('on')) ss.style.color = parseInt(ss.dataset.v) <= v ? '#d95a1a' : '';
+    });
+  });
+  s.addEventListener('mouseleave', () => {
+    document.querySelectorAll('#star-big-row .star-big').forEach(ss => {
+      if(!ss.classList.contains('on')) ss.style.color = '';
+    });
+  });
+});
+
+// ═══════════════════════════════════
+// GO TO FORM
+// ═══════════════════════════════════
+function goToForm() {
+  // Product card in form
+  document.getElementById('fpc-thumb').textContent = curProduct.emoji;
+  document.getElementById('fpc-name').textContent  = curProduct.name;
+  document.querySelectorAll('#fpc-stars .fpc-s').forEach(s => {
+    s.classList.toggle('on', parseInt(s.dataset.v) <= curRating);
+  });
+  // Restore saved / pre-fill for edit
+  document.getElementById('f-summary').value = savedSum;
+  document.getElementById('f-review').value  = savedRev;
+  document.getElementById('f-author').value  = 'Yevhenii M.';
+  document.getElementById('f-initials').checked = false;
+  // Edit alert
+  document.getElementById('edit-alert').style.display = isEdit ? '' : 'none';
+  // Chips
+  const cc = document.getElementById('f-chips'); cc.innerHTML = '';
+  (chipSets[curRating] || []).forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'chip'; btn.textContent = c;
+    btn.onclick = () => { document.getElementById('f-summary').value = c; savedSum = c; btn.classList.add('sel'); };
+    cc.appendChild(btn);
+  });
+  navigateTo('s-form');
+}
+
+function saveFields() {
+  savedSum = document.getElementById('f-summary').value;
+  savedRev = document.getElementById('f-review').value;
+}
+function toggleInitials() {
+  const cb = document.getElementById('f-initials');
+  document.getElementById('f-author').value = cb.checked ? 'Y. M.' : 'Yevhenii M.';
+}
+
+// ═══════════════════════════════════
+// SUBMIT
+// ═══════════════════════════════════
+function submitReview() {
+  if(curProduct) {
+    curProduct.status = 'approved';
+    curProduct.rating = curRating;
+    const today = new Date();
+    curProduct.date = `${today.getDate()}. ${today.getMonth()+1}. ${today.getFullYear()}`;
+    curProduct.review = {
+      title: document.getElementById('f-summary').value || 'Moja recenzia',
+      text:  document.getElementById('f-review').value  || ''
+    };
+  }
+  navigateTo('s-success');
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+renderList();
+</script>
+</body>
+</html>
